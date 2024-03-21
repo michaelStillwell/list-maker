@@ -1,0 +1,62 @@
+List Maker
+	todo
+		? how to handle the deletion of users/lists
+			undo?
+		? should you be able to edit your username
+	doing
+	done
+		create databases
+		list route
+		login
+			unprotected routes reroute to login and login reroutes to home if authenticated
+		bug: login page shows 500 after login
+			the login page shows a 500 error when logging out
+			
+			so looks like the form data is persisting when redirecting to login?
+			
+			not sure as to where the username password is even coming from?
+		logout page
+		bug: user not being found anymore
+			the user is coming out as none so login doesnt think youre ever actually logged in
+			
+			the home page isnt showing the lists because user is none
+		bug: list page is giving a 500
+		delete item in list
+		create item in list
+		delete list for user
+		create list for user
+		bug: foreign keys arent restricting like theyre supposed to homie
+			sqlite doesnt enfore foreign keys by default
+		bug: when a session id doesnt exist, the redirects go crazy
+			cleared out session cookie if a user cant be found from it, so either session
+			exist or user doesnt exist
+		edit item in list
+		edit list for user
+		account page
+		create style sheet
+
+			create the base styles for all the thingys
+			
+			am just going to use skeleton ui for now
+		encode the session value
+
+
+			made the session id a random string and added an expires_at field to filter based
+			on expired or not when accessing the user
+			
+			probably either have a session created_at field and check with an appsetting
+			for expiration 
+			OR
+			have the cookie be time limited
+		style the login page
+		create a layout for the app
+			layout needs to have menu, user icon and home button
+		style the home page
+		style the items page
+		create sign up page
+
+
+			the damned thing is just disappearing??
+			
+			weird... apparently signup is a special route??
+		hash the passwords
