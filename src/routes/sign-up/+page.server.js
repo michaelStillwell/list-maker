@@ -6,8 +6,8 @@ import { redirect } from '@sveltejs/kit';
 import Option from '$lib/option';
 
 /** @type {import('./$types').PageServerLoad} */
-export function load({ cookies }) {
-	const user = getUser(cookies);
+export async function load({ cookies }) {
+	const user = await getUser(cookies);
 	if (user.isSome()) {
 		throw redirect(303, '/');
 	} else {
@@ -20,7 +20,6 @@ export function load({ cookies }) {
 /** @type {import('./$types').Actions} */
 export const actions = {
 	default: async ({ request, cookies }) => {
-		console.log('signing up');
 		const data = Object.fromEntries(await request.formData());
 		const { username, password } = data;
 
@@ -35,13 +34,11 @@ export const actions = {
 
 		let user = Option.none();
 		try {
-			console.log('creating user');
-			user = create_user(username.toString(), password.toString());
+			user = await create_user(username.toString(), password.toString());
 			if (user.isNone()) {
 				return { status: 400 };
 			}
 		} catch (e) {
-			console.log('erroring', e);
 			return {
 				status: 400,
 				msg: 'Username exists'
@@ -49,15 +46,12 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		console.log('creating session');
-		const newSession = create_session(userId);
+		const newSession = await create_session(userId);
 		if (newSession.isSome()) {
-			console.log('setting cookie');
 			const { sessionId } = newSession.unwrap();
 			setSession(cookies, sessionId);
 			throw redirect(307, '/');
 		}
-		console.log('setting cookie');
 
 		return {
 			status: 500

@@ -28,6 +28,10 @@ export async function get_lists(userId) {
 	const listRows = await getTursoRows(sql(`
 		SELECT list_id, title, user_id FROM lists WHERE user_id =? ORDER BY list_id ASC;
 	`), userId);
+	if (listRows.isNone()) {
+		return [];
+	}
+
 	const lists = listRows.unwrap().map(ListFromRow);
 	return lists;
 }
