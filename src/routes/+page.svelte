@@ -36,7 +36,6 @@
 	}
 </script>
 
-{JSON.stringify(data)}
 <section class="w-full text-token p-4 space-y-4 card">
 	<p class="font-bold">Your lists</p>
 
