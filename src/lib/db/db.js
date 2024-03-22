@@ -1,8 +1,11 @@
-import { DB_CONNTECTION } from '$env/static/private';
-import Database from 'better-sqlite3';
+import { TURSO_DATABASE_URL, TURSO_AUTH_TOKEN } from "$env/static/private";
+import { createClient } from "@libsql/client";
 import Option from '../option';
 
-export const db = Database(DB_CONNTECTION); //, { verbose: console.log });
+export const turso = createClient({
+	url: TURSO_DATABASE_URL,
+	authToken: TURSO_AUTH_TOKEN,
+});
 
 /**
  * @param {string} query
@@ -10,6 +13,61 @@ export const db = Database(DB_CONNTECTION); //, { verbose: console.log });
  */
 export function sql(query) {
 	return query.trim();
+}
+
+/**
+ * @param {string} sql
+ * @param {any[]} args 
+ * @returns {Promise<Option<unknown>>}
+ */
+export async function getTursoRow(sql, ...args) {
+	// TODO: is there a way to make this a generic?
+	try {
+		const { rows } = await turso.execute({ sql, args: [...args] });
+		if (rows !== undefined && rows !== null && rows.length >= 1) {
+			return Option.some(rows[0]);
+		}
+		return Option.none();
+	} catch (e) {
+		console.log('getTursoRow#error', e);
+		return Option.none();
+	}
+}
+
+/**
+ * @param {string} sql
+ * @param {any[]} args 
+ * @returns {Promise<Option<import('@libsql/client').Row[]>>}
+ */
+export async function getTursoRows(sql, ...args) {
+	// TODO: is there a way to make this a generic?
+	try {
+		const { rows } = await turso.execute({ sql, args: [...args] });
+		if (rows !== undefined && rows !== null && rows.length >= 1) {
+			return Option.some(rows);
+		}
+
+		return Option.none();
+	} catch (e) {
+		console.log('getTursoRows#error', e);
+		return Option.none();
+	}
+}
+
+/**
+ * @param {string} sql
+ * @param {any[]} args 
+ * @returns {Promise<Option<import('@libsql/client').ResultSet>>}
+ */
+export async function executeTurso(sql, ...args) {
+	// TODO: is there a way to make this a generic?
+	try {
+		const response = await turso.execute({ sql, args: [...args] });
+		return Option.some(response);
+	} catch (e) {
+		console.log('getTursoRows#error', e);
+		return Option.none();
+	}
 }
 
 /**

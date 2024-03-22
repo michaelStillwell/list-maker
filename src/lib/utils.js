@@ -12,9 +12,9 @@ export function isNullOrEmpty(val) {
 
 /**
  * @param {import("@sveltejs/kit").Cookies} cookies 
- * @returns {Option<import("$lib/models").User>}
+ * @returns {Promise<Option<import("$lib/models").User>>}
  */
-export function getUser(cookies) {
+export async function getUser(cookies) {
 	const session = cookies.get('session');
 	if (!session) {
 		return Option.none();

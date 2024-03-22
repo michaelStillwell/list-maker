@@ -4,20 +4,20 @@ import { getUser } from '$lib/utils';
 import { fail } from '@sveltejs/kit';
 
 /** @type { import('./$types').PageServerLoad } */
-export function load({ cookies, params }) {
-	const user = getUser(cookies);
+export async function load({ cookies, params }) {
+	const user = await getUser(cookies);
 	if (user.isNone()) {
 		return { items: [], list: [] };
 	}
 
 	const { userId } = user.unwrap();
-	const list = get_list(userId, parseInt(params.listId));
+	const list = await get_list(userId, parseInt(params.listId));
 	if (list.isNone()) {
 		return { items: [], list: [] };
 	}
 
 	const { listId } = list.unwrap();
-	const items = get_items(userId, listId);
+	const items = await get_items(userId, listId);
 
 	return {
 		items,
@@ -28,7 +28,7 @@ export function load({ cookies, params }) {
 /** @type {import('./$types').Actions} */
 export const actions = {
 	add: async ({ params, request, cookies }) => {
-		const user = getUser(cookies);
+		const user = await getUser(cookies);
 		if (user.isNone()) {
 			return fail(500, {
 				isDuplicate: false,
@@ -47,7 +47,7 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		const item = create_item(userId, Number(listId), title.toString());
+		const item = await create_item(userId, Number(listId), title.toString());
 		const isDuplicate = item.isNone();
 		return isDuplicate ? fail(422, {
 			isDuplicate,
@@ -58,7 +58,7 @@ export const actions = {
 	},
 
 	edit: async ({ request, cookies }) => {
-		const user = getUser(cookies);
+		const user = await getUser(cookies);
 		if (user.isNone()) {
 			return fail(400, {});
 		}
@@ -70,12 +70,12 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		const success = edit_item(userId, Number(itemId), title.toString());
+		const success = await edit_item(userId, Number(itemId), title.toString());
 		return success ? { title } : fail(422, {});
 	},
 
 	remove: async ({ request, cookies }) => {
-		const user = getUser(cookies);
+		const user = await getUser(cookies);
 		if (user.isNone()) {
 			return { status: 400 };
 		}
@@ -87,7 +87,7 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		const success = remove_item(userId, Number(itemId));
+		const success = await remove_item(userId, Number(itemId));
 		return {
 			status: success ? 200 : 400
 		};

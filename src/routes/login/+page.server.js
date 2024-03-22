@@ -5,8 +5,8 @@ import { redirect } from '@sveltejs/kit';
 
 
 /** @type {import('./$types').PageServerLoad} */
-export function load({ cookies }) {
-	const user = getUser(cookies);
+export async function load({ cookies }) {
+	const user = await getUser(cookies);
 	if (user.isSome()) {
 		throw redirect(303, '/');
 	} else {
@@ -30,7 +30,7 @@ export const actions = {
 			}
 		}
 
-		const user = get_user(username.toString(), password.toString());
+		const user = await get_user(username.toString(), password.toString());
 		if (user.isNone()) {
 			return {
 				status: 400,
@@ -41,7 +41,7 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		const newSession = create_session(userId);
+		const newSession = await create_session(userId);
 		if (newSession.isSome()) {
 			const { sessionId } = newSession.unwrap();
 			setSession(cookies, sessionId);

@@ -1,55 +1,51 @@
-import { allRows, db, getRow, sql } from "./db";
-import Option from "../option";
+import { executeTurso, getTursoRow, getTursoRows, sql } from "./db";
 import { ListFromRow } from "$lib/models";
+import Option from "$lib/option";
 
 /**
  * @param {number} userId
  * @param {number} listId
- * @returns {Option<import("$lib/models").List>}
+ * @returns {Promise<Option<import("$lib/models").List>>}
  */
-export function get_list(userId, listId) {
-	const query = sql(`
+export async function get_list(userId, listId) {
+	const listRow = await getTursoRow(sql(`
 		SELECT list_id, title, user_id FROM lists WHERE user_id =? AND list_id =?
-	`);
-	const statment = db.prepare(query);
-	const row = getRow(statment, userId, listId);
-	if (row.isNone()) {
+	`), userId, listId);
+	if (listRow.isNone()) {
 		return Option.none();
 	}
 
-	const list = ListFromRow(row.unwrap());
+	const list = ListFromRow(/** @type {import("@libsql/client").Row} */
+		(listRow.unwrap()));
 	return Option.some(list);
 }
 
 /**
  * @param {number} userId
- * @returns {import("$lib/models").List[]}
+ * @returns {Promise<import("$lib/models").List[]>}
  */
-export function get_lists(userId) {
-	const query = sql(`
+export async function get_lists(userId) {
+	const listRows = await getTursoRows(sql(`
 		SELECT list_id, title, user_id FROM lists WHERE user_id =? ORDER BY list_id ASC;
-	`);
-	const statment = db.prepare(query);
-	const rows = allRows(statment, userId);
-	const lists = rows.unwrap().map(ListFromRow);
+	`), userId);
+	const lists = listRows.unwrap().map(ListFromRow);
 	return lists;
 }
 
 /**
  * @param {number} userId 
  * @param {string} title 
- * @returns {Option<import("$lib/models").List>}
+ * @returns {Promise<Option<import("$lib/models").List>>}
  */
-export function create_list(userId, title) {
-	const query = sql(`
-		INSERT INTO lists (user_id, title) VALUES (?, ?);
-	`);
-	const statement = db.prepare(query);
+export async function create_list(userId, title) {
+	const newListRow = await getTursoRow(sql(`
+		INSERT INTO lists (user_id, title) VALUES (?, ?) RETURNING list_id;
+	`), userId, title);
 	try {
-		const res = statement.run(userId, title);
-
+		const { list_id } = /** @type {{list_id: number}} */
+			(newListRow.unwrap());
 		const list = {
-			listId: Number(res.lastInsertRowid),
+			listId: list_id,
 			title,
 			userId
 		};
@@ -63,27 +59,31 @@ export function create_list(userId, title) {
  * @param {number} userId 
  * @param {number} listId 
  * @param {string} title 
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
-export function edit_list(userId, listId, title) {
-	const query = sql(`
+export async function edit_list(userId, listId, title) {
+	const res = await executeTurso(sql(`
 		UPDATE lists SET title=? WHERE user_id =? AND list_id =?;
-	`);
-	const statement = db.prepare(query);
-	const res = statement.run(title, userId, listId);
-	return res.changes > 0;
+	`), title, userId, listId);
+	if (res.isNone()) {
+		return false;
+	}
+
+	return res.unwrap().rowsAffected > 0;
 }
 
 /**
  * @param {number} userId
  * @param {number} listId
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
-export function remove_list(userId, listId) {
-	const query = sql(`
+export async function remove_list(userId, listId) {
+	const res = await executeTurso(sql(`
 		DELETE FROM lists WHERE user_id =? AND list_id =?;
-	`);
-	const statement = db.prepare(query);
-	const res = statement.run(userId, listId);
-	return res.changes > 0;
+	`), userId, listId);
+	if (res.isNone()) {
+		return false;
+	}
+
+	return res.unwrap().rowsAffected > 0;
 }

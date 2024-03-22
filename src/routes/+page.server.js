@@ -1,24 +1,22 @@
 import { create_list, edit_list, get_lists, remove_list } from "$lib/db/list";
 import { getUser } from "$lib/utils";
 
-export const ssr = false;
-
 /**
  * @typedef IndexData
  * @property {import("$lib/models").List[]} lists
  */
 
 /**
- * @type {import('./$types').PageServerLoad} 
- * @returns {IndexData}
+ * @param {*} args
+ * @returns {Promise<IndexData>}
  */
-export function load({ cookies }) {
-	const user = getUser(cookies);
+export async function load({ cookies }) {
+	const user = await getUser(cookies);
 	if (user.isNone()) {
 		return { lists: [] };
 	}
 
-	const lists = get_lists(user.unwrap().userId);
+	const lists = await get_lists(user.unwrap().userId);
 	return {
 		lists,
 	};
@@ -28,7 +26,7 @@ export function load({ cookies }) {
 export const actions = {
 	/** @returns {Promise<{status: number, isDuplicate: boolean}>} */
 	add: async ({ request, cookies }) => {
-		const user = getUser(cookies);
+		const user = await getUser(cookies);
 		if (user.isNone()) {
 			return {
 				status: 400,
@@ -46,7 +44,7 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		const list = create_list(userId, title.toString());
+		const list = await create_list(userId, title.toString());
 		const isDuplicate = list.isNone();
 		return {
 			status: !isDuplicate ? 200 : 400,
@@ -56,7 +54,7 @@ export const actions = {
 
 	/** @returns {Promise<{status: number, isDuplicate: boolean, title: string}>} */
 	edit: async ({ request, cookies }) => {
-		const user = getUser(cookies);
+		const user = await getUser(cookies);
 		if (user.isNone()) {
 			return {
 				status: 400,
@@ -76,7 +74,7 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		const success = edit_list(userId, Number(listId), title.toString());
+		const success = await edit_list(userId, Number(listId), title.toString());
 		return {
 			status: success ? 200 : 400,
 			isDuplicate: !success,
@@ -85,7 +83,7 @@ export const actions = {
 	},
 
 	remove: async ({ request, cookies }) => {
-		const user = getUser(cookies);
+		const user = await getUser(cookies);
 		if (user.isNone()) {
 			return { status: 400 };
 		}
@@ -97,7 +95,7 @@ export const actions = {
 		}
 
 		const { userId } = user.unwrap();
-		const success = remove_list(userId, listId);
+		const success = await remove_list(userId, listId);
 		return {
 			status: success ? 200 : 400
 		}

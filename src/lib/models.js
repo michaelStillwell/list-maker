@@ -21,14 +21,15 @@
  */
 
 /** 
- * @param {{list_id: number, title: string, user_id: number}} row 
+ * @param {import("@libsql/client").Row} row 
  * @returns {List}
  */
 export function ListFromRow(row) {
+
 	return {
-		listId: row.list_id,
-		title: row.title,
-		userId: row.user_id
+		listId: /** @type {number} */ (row.list_id),
+		title: /** @type {string} */ (row.title),
+		userId: /** @type {number} */ (row.user_id),
 	}
 }
 
@@ -43,15 +44,15 @@ export function ListFromRow(row) {
  */
 
 /** 
- * @param {{item_id: number, title: string, list_id: number, user_id: number}} row 
+ * @param {import("@libsql/client").Row} row 
  * @returns {Item}
  */
 export function ItemFromRow(row) {
 	return {
-		itemId: row.item_id,
-		title: row.title,
-		listId: row.list_id,
-		userId: row.user_id
+		itemId: /** @type {number} */ (row.item_id),
+		title: /** @type {string} */ (row.title),
+		listId: /** @type {number} */ (row.list_id),
+		userId: /** @type {number} */ (row.user_id),
 	}
 }
 

@@ -28,7 +28,7 @@ export const handle = async ({ event, resolve }) => {
 	}
 
 	const response = await resolve(event);
-	const currUser = getUser(event.cookies);
+	const currUser = await getUser(event.cookies);
 	if (currUser.isNone()) {
 		throw redirect(302, '/login');
 	}
